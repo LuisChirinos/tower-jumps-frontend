@@ -1,19 +1,20 @@
 FROM node:18-alpine
 
-# Set the working directory inside the container
-WORKDIR /src/app
+# Cambia el directorio de trabajo a lo que prefieras
+WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ../
+# Copia los archivos de dependencias
+COPY package*.json ./
 
-# Install dependencies
+# Instala las dependencias
 RUN npm install
 
-# Copy the application code
+# Copia todo el resto de tu código
 COPY . .
 
-# Expose port 3000
-EXPOSE 3000
+# Compila el proyecto Next.js
+RUN npm run build
 
-# Start the application
-CMD ["npm", "run", "dev"]
+
+# Comando de arranque: producirá "next start -p $PORT"
+CMD ["npm", "run", "start"]
