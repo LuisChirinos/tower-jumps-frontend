@@ -2,32 +2,48 @@
 
 import { useState } from "react";
 
+// Define the props for the FilterForm component
 type FormularioProps = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSubmit: (params: any) => void;
-  isLoading: boolean;
+  onSubmit: (params: any) => void; // Callback for form submission
+  isLoading: boolean; // Indicates if the form is currently processing
 };
 
 export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
+  // State to store the uploaded file
   const [file, setFile] = useState<File | null>(null);
+
+  // State to toggle custom weights
   const [enableWeights, setEnableWeights] = useState(false);
+
+  // State to store the individual weights
   const [weights, setWeights] = useState({
     voice: 33.33,
     sms: 33.33,
     data: 33.33,
   });
+
+  // Tracks which weight is currently locked to prevent changes to others
   const [lockedKey, setLockedKey] = useState<string | null>(null);
-  const [timeGap, setTimeGap] = useState(1); // En horas
+
+  // State for time gap (in hours by default)
+  const [timeGap, setTimeGap] = useState(1);
+
+  // State to toggle date filter
   const [enableDateFilter, setEnableDateFilter] = useState(false);
+
+  // Start and end date values for the date filter
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
+  // Handle file input changes
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
     }
   };
 
+  // Updates weights and distributes the remaining percentages among the other keys
   const handleWeightChange = (key: string, value: number) => {
     setLockedKey(key);
     const remaining = 100 - value;
@@ -41,32 +57,39 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
     }));
   };
 
+  // Unlocks all weights for editing
   const unlockWeights = () => {
     setLockedKey(null);
   };
 
+  // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // If no file is uploaded, alert the user
     if (!file) {
       alert("Please upload a CSV file.");
       return;
     }
 
-    const fileContent = await file.text(); // Convertir el archivo a texto antes de enviarlo
+    // Convert the uploaded file into text
+    const fileContent = await file.text();
 
+    // Prepare the parameters to send to the backend
     const params = {
-      file: fileContent, // Enviamos el contenido como texto
+      file: fileContent,
       weights: enableWeights ? weights : { voice: 1, sms: 1, data: 1 },
-      timeGap: timeGap * 60, // Convertir horas a minutos
+      timeGap: timeGap * 60, // Convert hours to minutes
       dateFilter: enableDateFilter ? { startDate, endDate } : undefined,
     };
 
+    // Invoke the parent callback
     onSubmit(params);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* CSV file uploader */}
       <div>
         <label className="block text-sm font-medium text-gray-700">
           Upload CSV:
@@ -79,6 +102,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
         />
       </div>
 
+      {/* Checkbox to enable/disable custom weights */}
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -98,6 +122,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
         </label>
       </div>
 
+      {/* Weight inputs (voice, sms, data) */}
       {enableWeights && (
         <>
           {["voice", "sms", "data"].map((key) => (
@@ -107,7 +132,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
               </label>
               <input
                 type="number"
-                value={weights[key]}
+                value={weights[key as keyof typeof weights]}
                 min={0}
                 max={100}
                 disabled={lockedKey !== null && lockedKey !== key}
@@ -125,6 +150,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
         </>
       )}
 
+      {/* Checkbox to enable/disable date filtering */}
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -141,6 +167,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
         </label>
       </div>
 
+      {/* Date inputs for start and end date */}
       {enableDateFilter && (
         <>
           <div>
@@ -168,6 +195,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
         </>
       )}
 
+      {/* Time gap selector (in hours) */}
       <div>
         <label className="block text-sm font-medium text-gray-700">
           Time Gap (hours):
@@ -185,6 +213,7 @@ export default function FilterForm({ onSubmit, isLoading }: FormularioProps) {
         </select>
       </div>
 
+      {/* Submit button */}
       <button
         type="submit"
         disabled={isLoading}
