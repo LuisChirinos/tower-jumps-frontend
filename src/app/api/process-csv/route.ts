@@ -21,7 +21,9 @@ export async function POST(req: Request): Promise<Response> {
 
     console.log("Request body parsed:", { weights, timeGap, dateFilter });
 
-    const backendUrl = process.env.BACKEND_URL || "http://backend:5000";
+    const backendUrl =
+      process.env.BACKEND_URL ||
+      "https://tower-jumps-backend-production.up.railway.app";
 
     // Forward the request to the backend
     const backendResponse = await fetch(`${backendUrl}/process-csv`, {
